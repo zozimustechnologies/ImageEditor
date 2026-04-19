@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Editor</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="header">
+    <svg class="header-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+    </svg>
+    <h1>Image Editor</h1>
+    <a href="https://wise.com/pay/business/sandeepchadda?utm_source=open_link" target="_blank" rel="noopener" class="donate-btn" title="Support development">♥ Donate</a>
+  </header>
+
+  <!-- Upload Zone -->
+  <div id="uploadZone" class="upload-zone">
+    <div class="upload-content">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p>Drop an image here</p>
+      <span class="upload-hint">or</span>
+      <button id="browseBtn" class="btn btn-primary">Browse Files</button>
+      <button id="pasteBtn" class="btn btn-ghost">Paste from Clipboard</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+
+    <!-- Page Images -->
+    <div id="pageImagesSection" class="page-images-section hidden">
+      <div class="page-images-header">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10A15.3 15.3 0 0112 2z"/>
+        </svg>
+        <span>Images on this page</span>
+        <button id="refreshPageImages" class="btn btn-icon btn-xs" title="Refresh">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+        </button>
+      </div>
+      <div id="pageImagesList" class="page-images-list"></div>
+    </div>
+  </div>
+
+  <!-- Canvas Area -->
+  <div id="canvasArea" class="canvas-area hidden">
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <canvas id="previewCanvas"></canvas>
+      <!-- Crop overlay -->
+      <div id="cropOverlay" class="crop-overlay hidden">
+        <div class="crop-region" id="cropRegion">
+          <div class="crop-handle nw" data-handle="nw"></div>
+          <div class="crop-handle ne" data-handle="ne"></div>
+          <div class="crop-handle sw" data-handle="sw"></div>
+          <div class="crop-handle se" data-handle="se"></div>
+          <div class="crop-handle n" data-handle="n"></div>
+          <div class="crop-handle s" data-handle="s"></div>
+          <div class="crop-handle e" data-handle="e"></div>
+          <div class="crop-handle w" data-handle="w"></div>
+        </div>
+      </div>
+    </div>
+    <div class="image-info" id="imageInfo"></div>
+
+    <!-- Tool Tabs -->
+    <div class="tool-tabs">
+      <button class="tool-tab active" data-tool="crop">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 002 2h14"/><path d="M18 22V8a2 2 0 00-2-2H2"/></svg>
+        Crop
+      </button>
+      <button class="tool-tab" data-tool="resize">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        Resize
+      </button>
+      <button class="tool-tab" data-tool="filters">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </button>
+      <button class="tool-tab" data-tool="creative">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Creative
+      </button>
+      <button class="tool-tab" data-tool="export">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+
+    <!-- Tool Panels -->
+    <div class="tool-panels">
+
+      <!-- Crop Panel -->
+      <div class="tool-panel active" id="panel-crop">
+        <div class="panel-section">
+          <label class="panel-label">Aspect Ratio</label>
+          <div class="ratio-buttons">
+            <button class="ratio-btn active" data-ratio="free">Free</button>
+            <button class="ratio-btn" data-ratio="1:1">1:1</button>
+            <button class="ratio-btn" data-ratio="4:3">4:3</button>
+            <button class="ratio-btn" data-ratio="16:9">16:9</button>
+            <button class="ratio-btn" data-ratio="3:2">3:2</button>
+          </div>
+        </div>
+        <div class="panel-section">
+          <label class="panel-label">Crop Area</label>
+          <div class="input-row">
+            <div class="input-group">
+              <label>X</label>
+              <input type="number" id="cropX" min="0" value="0">
+            </div>
+            <div class="input-group">
+              <label>Y</label>
+              <input type="number" id="cropY" min="0" value="0">
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label>W</label>
+              <input type="number" id="cropW" min="1" value="100">
+            </div>
+            <div class="input-group">
+              <label>H</label>
+              <input type="number" id="cropH" min="1" value="100">
+            </div>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-primary" id="applyCrop">Apply Crop</button>
+          <button class="btn btn-ghost" id="cancelCrop">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Resize Panel -->
+      <div class="tool-panel" id="panel-resize">
+        <div class="panel-section">
+          <label class="panel-label">Dimensions</label>
+          <div class="input-row resize-row">
+            <div class="input-group">
+              <label>Width</label>
+              <input type="number" id="resizeW" min="1">
+            </div>
+            <button class="link-btn active" id="lockAspect" title="Lock aspect ratio">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+            </button>
+            <div class="input-group">
+              <label>Height</label>
+              <input type="number" id="resizeH" min="1">
+            </div>
+          </div>
+        </div>
+        <div class="panel-section">
+          <label class="panel-label">Presets</label>
+          <div class="ratio-buttons">
+            <button class="preset-btn" data-scale="0.25">25%</button>
+            <button class="preset-btn" data-scale="0.5">50%</button>
+            <button class="preset-btn" data-scale="0.75">75%</button>
+            <button class="preset-btn" data-scale="1.5">150%</button>
+            <button class="preset-btn" data-scale="2">200%</button>
+          </div>
+        </div>
+        <div class="resize-info" id="resizeInfo"></div>
+        <div class="panel-actions">
+          <button class="btn btn-primary" id="applyResize">Apply Resize</button>
+        </div>
+      </div>
+
+      <!-- Filters Panel -->
+      <div class="tool-panel" id="panel-filters">
+        <div class="panel-section">
+          <label class="panel-label">Presets</label>
+          <div class="filter-presets">
+            <button class="filter-preset-btn active" data-preset="original">Original</button>
+            <button class="filter-preset-btn" data-preset="vivid">Vivid</button>
+            <button class="filter-preset-btn" data-preset="warm">Warm</button>
+            <button class="filter-preset-btn" data-preset="cool">Cool</button>
+            <button class="filter-preset-btn" data-preset="bw">B&W</button>
+            <button class="filter-preset-btn" data-preset="sepia">Sepia</button>
+            <button class="filter-preset-btn" data-preset="highcontrast">Hi-Con</button>
+            <button class="filter-preset-btn" data-preset="vintage">Vintage</button>
+          </div>
+        </div>
+        <div class="panel-section">
+          <label class="panel-label">Adjustments</label>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Brightness</label><span id="val-brightness">100%</span>
+            </div>
+            <input type="range" id="filter-brightness" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Contrast</label><span id="val-contrast">100%</span>
+            </div>
+            <input type="range" id="filter-contrast" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Saturation</label><span id="val-saturate">100%</span>
+            </div>
+            <input type="range" id="filter-saturate" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Blur</label><span id="val-blur">0px</span>
+            </div>
+            <input type="range" id="filter-blur" min="0" max="10" value="0" step="0.1">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Grayscale</label><span id="val-grayscale">0%</span>
+            </div>
+            <input type="range" id="filter-grayscale" min="0" max="100" value="0">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Sepia</label><span id="val-sepia">0%</span>
+            </div>
+            <input type="range" id="filter-sepia" min="0" max="100" value="0">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Hue Rotate</label><span id="val-hueRotate">0°</span>
+            </div>
+            <input type="range" id="filter-hueRotate" min="0" max="360" value="0">
+          </div>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Opacity</label><span id="val-opacity">100%</span>
+            </div>
+            <input type="range" id="filter-opacity" min="0" max="100" value="100">
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+          <button class="btn btn-ghost" id="resetFilters">Reset All</button>
+        </div>
+      </div>
+
+      <!-- Creative Filters Panel -->
+      <div class="tool-panel" id="panel-creative">
+        <!-- Recommendation Banner -->
+        <div class="recommendation-banner" id="recommendationBanner">
+          <div class="rec-icon">💡</div>
+          <div class="rec-text">
+            <strong>Recommended:</strong>
+            <span id="recFilterName">Load an image to get suggestions</span>
+          </div>
+          <button class="btn btn-xs btn-accent" id="applyRecommended" style="display:none">Try it</button>
+        </div>
+
+        <div class="panel-section">
+          <label class="panel-label">Creative Filters</label>
+          <div class="creative-grid">
+            <button class="creative-card" data-creative="memoryDrift">🧠 Memory Drift</button>
+            <button class="creative-card" data-creative="geneticMutation">🧬 Mutation</button>
+            <button class="creative-card" data-creative="timeSlice">🕰️ Time Slice</button>
+            <button class="creative-card" data-creative="perspectiveWarp">🧭 Warp</button>
+            <button class="creative-card" data-creative="emotionHappy">🎭 Happy</button>
+            <button class="creative-card" data-creative="emotionSad">🎭 Sad</button>
+            <button class="creative-card" data-creative="emotionAngry">🎭 Angry</button>
+            <button class="creative-card" data-creative="physicsBreaker">🌌 Physics</button>
+            <button class="creative-card" data-creative="multiReality">🧩 Multi-Real</button>
+            <button class="creative-card" data-creative="detailRedist">🔍 Detail</button>
+            <button class="creative-card" data-creative="signalCorrupt">📡 Glitch</button>
+            <button class="creative-card" data-creative="growthDecay">🌱 Decay</button>
+          </div>
+        </div>
+
+        <div class="panel-section" id="creativeControls" style="display:none">
+          <label class="panel-label" id="creativeControlLabel">Intensity</label>
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Intensity</label><span id="val-creativeIntensity">80%</span>
+            </div>
+            <input type="range" id="creativeIntensity" min="0" max="100" value="80">
+          </div>
+          <div class="slider-group" id="creativeMutationRate" style="display:none">
+            <div class="slider-row">
+              <label>Mutation Rate</label><span id="val-mutationRate">50%</span>
+            </div>
+            <input type="range" id="mutationRate" min="0" max="100" value="50">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Export Panel -->
+      <div class="tool-panel" id="panel-export">
+        <div class="panel-section">
+          <label class="panel-label">Format</label>
+          <div class="ratio-buttons">
+            <button class="format-btn active" data-format="png">PNG</button>
+            <button class="format-btn" data-format="jpeg">JPEG</button>
+            <button class="format-btn" data-format="webp">WebP</button>
+          </div>
+        </div>
+        <div class="panel-section" id="qualitySection">
+          <div class="slider-group">
+            <div class="slider-row">
+              <label>Quality</label><span id="val-quality">92%</span>
+            </div>
+            <input type="range" id="exportQuality" min="10" max="100" value="92">
+          </div>
+        </div>
+        <div class="export-info" id="exportInfo"></div>
+        <div class="panel-actions">
+          <button class="btn btn-primary btn-large" id="downloadBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn btn-icon" id="undoBtn" title="Undo" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
+      </button>
+      <button class="btn btn-icon" id="redoBtn" title="Redo" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-5.64-11.36L23 10"/></svg>
+      </button>
+      <div class="action-spacer"></div>
+      <button class="btn btn-ghost btn-sm" id="newImageBtn">New Image</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>© <a href="https://github.com/zozimustechnologies" target="_blank" rel="noopener">Zozimus Technologies</a></span>
+    </footer>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

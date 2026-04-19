@@ -1,0 +1,39 @@
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Linters / Formatters
+.hintrc
+.eslintcache
+.stylelintcache
+.prettierignore
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+._*
+
+# Node (if ever added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+*.zip
+*.crx
+*.pem
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*~
