@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Image Editor",
   "version": "1.0.0",
-  "description": "A lightweight image editor in your browser sidebar. Crop, resize, apply filters, and convert formats — all without leaving your browser.",
+  "description": "Lightweight image editor in your browser sidebar. Crop, resize, apply filters, and convert formats without leaving your browser.",
   "permissions": [
     "sidePanel",
     "contextMenus",
