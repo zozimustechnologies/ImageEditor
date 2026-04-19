@@ -188,15 +188,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  max-height: 350px;
+  min-height: 120px;
+  max-height: 220px;
   overflow: hidden;
   border-bottom: 1px solid var(--border);
 }
 
 #previewCanvas {
   max-width: 100%;
-  max-height: 350px;
+  max-height: 220px;
   object-fit: contain;
 }
 
@@ -629,6 +629,21 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .btn-accent:hover { background: var(--accent-hover); }
+
+/* ── Upload Copyright ───────────────────────────────── */
+.upload-copyright {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  padding-top: 8px;
+}
+
+.upload-copyright a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.upload-copyright a:hover { text-decoration: underline; }
 
 /* ── Footer ───────────────────────────────────────── */
 .footer {

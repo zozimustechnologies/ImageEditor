@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Editor — Browser Side Panel Extension</title>
+  <meta name="description" content="A lightweight, privacy-first image editor that lives in your browser's side panel. Crop, resize, apply filters, and export — without leaving your current tab.">
+  <meta name="theme-color" content="#3d7ea6">
+  <link rel="icon" type="image/png" href="icons/icon48.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-elevated: #1c2129;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --text-bright: #f0f6fc;
+      --accent: #3d7ea6;
+      --accent-light: #4a92bd;
+      --accent-glow: rgba(61, 126, 166, 0.15);
+      --danger: #d4313b;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: 80px 24px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(61,126,166,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-logo {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(61,126,166,0.25);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      text-decoration: none;
+    }
+
+    .btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-light); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-bright);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+    .btn-donate {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-donate:hover { background: #e04450; }
+
+    /* ── Banner Image ── */
+    .banner {
+      max-width: 1100px;
+      margin: 0 auto 60px;
+      padding: 0 24px;
+    }
+
+    .banner img {
+      width: 100%;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 64px rgba(0,0,0,0.4);
+    }
+
+    /* ── Section ── */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      color: var(--text-bright);
+      margin-bottom: 8px;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* ── Feature Grid ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(61,126,166,0.08);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── Creative Filters ── */
+    .creative-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .creative-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .creative-item .emoji { font-size: 24px; flex-shrink: 0; }
+
+    .creative-item .info h4 {
+      font-size: 0.95rem;
+      color: var(--text-bright);
+      margin-bottom: 2px;
+    }
+
+    .creative-item .info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Privacy ── */
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .privacy-card {
+      text-align: center;
+      padding: 32px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .privacy-card .icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .privacy-card h3 {
+      font-size: 1rem;
+      color: var(--text-bright);
+      margin-bottom: 6px;
+    }
+
+    .privacy-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ── How to Install ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      padding: 28px;
+      padding-top: 56px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      top: 20px;
+      left: 28px;
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step h3 {
+      font-size: 1rem;
+      color: var(--text-bright);
+      margin-bottom: 6px;
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .step code {
+      background: var(--bg-elevated);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent-light);
+    }
+
+    /* ── Screenshots ── */
+    .screenshots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .screenshots img {
+      width: 100%;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .site-footer .links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 16px 40px; }
+      .section { padding: 40px 16px; }
+      .features, .creative-grid, .privacy-grid, .steps, .screenshots {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img src="storeassets/extensionlogo.png" alt="Image Editor logo" class="hero-logo">
+    <h1>Image Editor</h1>
+    <p class="tagline">A lightweight, privacy-first image editor that lives in your browser's side panel. Crop, resize, apply filters, and export — without leaving your current tab.</p>
+    <div class="hero-buttons">
+      <a href="https://microsoftedge.microsoft.com/addons/detail/image-editor/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Install from Edge Add-ons
+      </a>
+      <a href="https://github.com/zozimustechnologies/imageeditor" class="btn btn-outline">
+        <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+      <a href="https://wise.com/pay/business/sandeepchadda?utm_source=open_link" class="btn btn-donate" target="_blank" rel="noopener">
+        &#9829; Donate
+      </a>
+    </div>
+  </section>
+
+  <!-- Banner -->
+  <div class="banner">
+    <img src="storeassets/largepromotionaltile.png" alt="Image Editor promotional banner">
+  </div>
+
+  <!-- Features -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Everything you need. Nothing you don't.</h2>
+      <p>A full image editing toolkit in a compact sidebar — zero dependencies, zero uploads.</p>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">&#9986;</span>
+        <h3>Crop</h3>
+        <p>Interactive drag handles with 5 preset aspect ratios (Free, 1:1, 4:3, 16:9, 3:2) and manual pixel coordinate input for precision work.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#8596;</span>
+        <h3>Resize</h3>
+        <p>Scale by width, height, or percentage presets (25%–200%). Lock aspect ratio to prevent distortion. See dimensions side-by-side.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#127912;</span>
+        <h3>8 Filters + 8 Presets</h3>
+        <p>Brightness, contrast, saturation, blur, grayscale, sepia, hue rotation, and opacity sliders. Plus one-click presets: Vivid, Warm, Cool, B&amp;W, and more.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#10024;</span>
+        <h3>12 Creative Effects</h3>
+        <p>Unique pixel-manipulation filters like Memory Drift, Signal Corruption, Time Slice, and Genetic Mutation — with AI-powered recommendations.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#128190;</span>
+        <h3>Export</h3>
+        <p>Save as PNG, JPEG, or WebP with adjustable quality. One-click download with auto-generated filenames.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#127760;</span>
+        <h3>Page Image Detection</h3>
+        <p>Scans the active tab and displays a thumbnail gallery of every image on the page. Click any image to edit it instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Creative Filters -->
+  <section class="section" style="padding-top: 0;">
+    <div class="section-header">
+      <h2>12 Creative Filters</h2>
+      <p>Go beyond basic edits with pixel-level creative effects. Each includes an intensity slider.</p>
+    </div>
+    <div class="creative-grid">
+      <div class="creative-item">
+        <span class="emoji">&#129504;</span>
+        <div class="info"><h4>Memory Drift</h4><p>Nostalgic blur with warm color drift</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#129516;</span>
+        <div class="info"><h4>Genetic Mutation</h4><p>Chaotic pixel displacement</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#128368;&#65039;</span>
+        <div class="info"><h4>Time Slice</h4><p>Day-to-night gradient</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#129517;</span>
+        <div class="info"><h4>Perspective Warp</h4><p>Barrel distortion / fish-eye</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#127917;</span>
+        <div class="info"><h4>Emotion: Happy</h4><p>Warm glow with bloom</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#127917;</span>
+        <div class="info"><h4>Emotion: Sad</h4><p>Cool desaturation with blue shift</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#127917;</span>
+        <div class="info"><h4>Emotion: Angry</h4><p>Edge-detected red amplification</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#127756;</span>
+        <div class="info"><h4>Physics Breaker</h4><p>Sine-wave + chromatic aberration</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#129513;</span>
+        <div class="info"><h4>Multi-Reality</h4><p>Posterized / real / sketch split</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#128269;</span>
+        <div class="info"><h4>Detail Redistribution</h4><p>Inverted sharpness vignette</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#128225;</span>
+        <div class="info"><h4>Signal Corruption</h4><p>VHS-style glitch with scanlines</p></div>
+      </div>
+      <div class="creative-item">
+        <span class="emoji">&#127793;</span>
+        <div class="info"><h4>Growth / Decay</h4><p>Organic rust and aging patterns</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Your images stay yours</h2>
+      <p>100% local processing. Nothing leaves your browser.</p>
+    </div>
+    <div class="privacy-grid">
+      <div class="privacy-card">
+        <span class="icon">&#128274;</span>
+        <h3>No Uploads</h3>
+        <p>All image processing happens locally on your device using the Canvas 2D API.</p>
+      </div>
+      <div class="privacy-card">
+        <span class="icon">&#128683;</span>
+        <h3>No Tracking</h3>
+        <p>Zero analytics, zero cookies, zero data collection. We don't know who you are.</p>
+      </div>
+      <div class="privacy-card">
+        <span class="icon">&#128230;</span>
+        <h3>No External Scripts</h3>
+        <p>Everything runs inside the extension. No CDNs, no remote code, no dependencies.</p>
+      </div>
+      <div class="privacy-card">
+        <span class="icon">&#128064;</span>
+        <h3>Open Source</h3>
+        <p>Every line of code is on GitHub. Audit it yourself — we have nothing to hide.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Get started in 30 seconds</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Install the extension</h3>
+        <p>Get it from the <a href="https://microsoftedge.microsoft.com/addons/detail/image-editor/">Edge Add-ons store</a> or load it unpacked from <code>edge://extensions</code>.</p>
+      </div>
+      <div class="step">
+        <h3>Open the side panel</h3>
+        <p>Click the Image Editor icon in your toolbar. The editor opens in the browser sidebar.</p>
+      </div>
+      <div class="step">
+        <h3>Load an image</h3>
+        <p>Browse files, drag-and-drop, paste from clipboard, or click any image detected on the current page.</p>
+      </div>
+      <div class="step">
+        <h3>Edit and export</h3>
+        <p>Crop, resize, apply filters or creative effects, then download as PNG, JPEG, or WebP.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="section">
+    <div class="section-header">
+      <h2>See it in action</h2>
+    </div>
+    <div class="screenshots">
+      <img src="storeassets/screenshot-1280x800.png" alt="Image Editor side panel in browser" loading="lazy">
+      <img src="storeassets/screenshot-640x400.png" alt="Image Editor compact view" loading="lazy">
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="links">
+      <a href="https://github.com/zozimustechnologies/imageeditor">GitHub</a>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/image-editor/">Edge Add-ons</a>
+      <a href="https://wise.com/pay/business/sandeepchadda?utm_source=open_link" target="_blank" rel="noopener">Donate</a>
+    </div>
+    <p>&copy; Zozimus Technologies. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

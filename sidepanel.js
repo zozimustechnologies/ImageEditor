@@ -1411,4 +1411,14 @@
     };
   }
 
+  /* ================================================================
+     UNSAVED CHANGES WARNING
+     ================================================================ */
+  window.addEventListener('beforeunload', (e) => {
+    // Warn if an image is loaded and edits have been made
+    if (state.currentCanvas && state.undoStack.length > 0) {
+      e.preventDefault();
+    }
+  });
+
 })();
