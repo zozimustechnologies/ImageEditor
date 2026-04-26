@@ -32,9 +32,6 @@ build/
 *.crx
 *.pem
 
-# Icongen extended output (keep only icon16/48/128.png)
-icons/icon-*.png
-
 # Temp
 *.tmp
 *.bak
