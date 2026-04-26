@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Blue background with rounded corners -->
+  <rect width="128" height="128" rx="18" ry="18" fill="#2196F3"/>
+  <!-- Sun (circle, top right) -->
+  <circle cx="90" cy="34" r="13" fill="white"/>
+  <!-- Mountains (two overlapping triangles) -->
+  <polygon points="12,100 52,44 92,100" fill="white"/>
+  <polygon points="52,100 82,58 116,100" fill="white"/>
+</svg>
