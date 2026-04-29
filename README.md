@@ -52,11 +52,12 @@ Unique pixel-manipulation effects with intensity control and AI-powered recommen
 
 ## Install
 
-1. Open `edge://extensions` (or `chrome://extensions`)
+**Microsoft Edge:** [Get it from the Edge Add-ons store](https://microsoftedge.microsoft.com/addons/detail/image-editor/jnmbhgfohmajljlmjidalknbalmecclc)
+
+Or load unpacked for development:
+1. Open `edge://extensions`
 2. Enable **Developer mode**
 3. Click **Load unpacked** and select this folder
-
-Click the extension icon in the toolbar to open the side panel.
 
 ## Usage
 
@@ -96,6 +97,6 @@ Zero dependencies. Pure HTML, CSS, and vanilla JavaScript. All processing uses t
 
 ## License
 
-© Zozimus Technologies. All rights reserved.
+© 2026 Zozimus Technologies. All rights reserved.
 
 [MIT License](/LICENSE)

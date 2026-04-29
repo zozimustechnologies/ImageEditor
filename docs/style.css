@@ -66,23 +66,9 @@
       margin-bottom: 20px;
     }
 
-    .coming-soon-badge {
-      display: inline-block;
-      font-size: 0.68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 4px 12px; border-radius: 100px;
-      background: rgba(212,49,59,0.15); color: #e04450;
-      border: 1px solid rgba(212,49,59,0.25);
-    }
-
-    .launch-date-badge {
-      display: inline-block;
-      font-size: 0.68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 4px 12px; border-radius: 100px;
-      background: rgba(99,102,241,0.15); color: #818cf8;
-      border: 1px solid rgba(99,102,241,0.3);
-    }
+    .coming-soon-badge,
+    .launch-date-badge,
+    .live-badge { display: none; }
 
     .hero .tagline {
       font-size: clamp(1rem, 2.5vw, 1.25rem);

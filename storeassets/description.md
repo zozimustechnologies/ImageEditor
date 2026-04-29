@@ -73,10 +73,11 @@ Full 20-step undo/redo history. Every crop, resize, filter, and creative effect 
 
 ## How to Use
 
-1. Click the Image Editor icon in the toolbar to open the side panel
-2. Load an image: browse files, drag-and-drop, paste from clipboard, or click a page image
-3. Edit with Crop, Resize, Filters, or Creative tools
-4. Export as PNG, JPEG, or WebP
+1. Install from the [Edge Add-ons store](https://microsoftedge.microsoft.com/addons/detail/image-editor/jnmbhgfohmajljlmjidalknbalmecclc)
+2. Click the Image Editor icon in the toolbar to open the side panel
+3. Load an image: browse files, drag-and-drop, paste from clipboard, or click a page image
+4. Edit with Crop, Resize, Filters, or Creative tools
+5. Export as PNG, JPEG, or WebP
 
 You can also right-click any image on a webpage and select **"Edit image"** to send it directly to the editor.
 

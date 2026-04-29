@@ -27,8 +27,10 @@ body {
   font-size: 13px;
   color: var(--text);
   background: var(--bg);
-  overflow-x: hidden;
-  min-height: 100vh;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .hidden { display: none !important; }
@@ -79,9 +81,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 50px);
+  flex: 1;
   padding: 24px 16px;
   gap: 16px;
+  overflow-y: auto;
 }
 
 .upload-zone.drag-over .upload-content {
@@ -180,6 +183,9 @@ body {
 .canvas-area {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .canvas-wrapper {
@@ -471,8 +477,7 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 8px 12px;
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
-  position: sticky;
-  bottom: 0;
+  flex-shrink: 0;
 }
 
 .action-spacer { flex: 1; }
@@ -653,6 +658,7 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: center;
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
+  flex-shrink: 0;
 }
 
 .footer a {
